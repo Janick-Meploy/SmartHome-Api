@@ -56,6 +56,9 @@ builder.Services.AddScoped<ISensorValidationService, SensorValidationService>();
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<SmartHomeDbContext>("database");
 
+builder.Services.AddScoped<SensorDataService>();
+builder.Services.AddHostedService<MqttService>();
+
 builder.Services.AddCors(options =>
 {
     var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();

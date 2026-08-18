@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <!-- MySQL / MariaDB provider for EF Core (works great against the Raspberry Pi's local MySQL instance) -->
+    <PackageReference Include="MQTTnet" Version="5.2.0.1603" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">
       <PrivateAssets>all</PrivateAssets>
