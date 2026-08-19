@@ -6,21 +6,24 @@ pool:
   demands:
     - Agent.Name -equals SmartHome-Pi
 
-steps:
+jobs:
+- job: DeploySmartHomeApi
+  displayName: Deploy SmartHome API
 
-- script: |
-    cd ~/SmartHome-Api
+  steps:
+  - script: |
+      cd ~/SmartHome-Api
 
-    echo "Updating repository..."
-    git pull origin master
+      echo "Updating repository..."
+      git pull origin master
 
-    echo "Building API..."
-    dotnet publish SmartHomeIoT.Api.csproj \
-      -c Release \
-      -o ~/SmartHome-Api/publish
+      echo "Building API..."
+      dotnet publish SmartHomeIoT.Api.csproj \
+        -c Release \
+        -o ~/SmartHome-Api/publish
 
-    echo "Restarting API..."
-    sudo systemctl restart smarthome-api
+      echo "Restarting API..."
+      sudo systemctl restart smarthome-api
 
-    echo "Deployment complete."
-  displayName: 'Deploy SmartHome API'
+      echo "Deployment complete."
+    displayName: 'Deploy SmartHome API'
