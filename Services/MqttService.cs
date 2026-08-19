@@ -95,6 +95,12 @@ namespace SmartHomeIoT.Api.Services
                 return;
             }
 
+            Console.WriteLine(
+                $"Parsed sensor data: " +
+                $"Value={sensorMessage.Value}, " +
+                $"Unit={sensorMessage.Unit}, " +
+                $"Timestamp={sensorMessage.Timestamp:o}");
+
             using var scope = _scopeFactory.CreateScope();
 
             var sensorDataService =
