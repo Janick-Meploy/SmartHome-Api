@@ -28,7 +28,7 @@ public class SensorDataService
         };
 
         _context.SensorData.Add(sensorData);
-
+        Console.WriteLine("Saving sensor data in the database...");
         await _context.SaveChangesAsync();
     }
 }

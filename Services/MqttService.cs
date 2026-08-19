@@ -105,6 +105,7 @@ namespace SmartHomeIoT.Api.Services
                 scope.ServiceProvider
                     .GetRequiredService<SensorDataService>();
 
+            Console.WriteLine("Saving sensor data...");
             await sensorDataService.SaveSensorDataAsync(
                 deviceId,
                 sensorType,
