@@ -86,8 +86,6 @@ namespace SmartHomeIoT.Api.Services
                     {
                         PropertyNameCaseInsensitive = true
                     });
-
-                // Testing pipeline
             }
             catch (JsonException)
             {
