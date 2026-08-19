@@ -57,6 +57,9 @@ namespace SmartHomeIoT.Api.Services
             Console.WriteLine($"Topic: {topic}");
             Console.WriteLine($"Payload: {payload}");
 
+            // Expected:
+            // smarthome/device/42/sensor/temperature
+
             var topicParts = topic.Split('/');
 
             if (topicParts.Length != 5)
@@ -70,21 +73,19 @@ namespace SmartHomeIoT.Api.Services
                 Console.WriteLine("Invalid device ID in MQTT topic.");
                 return;
             }
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.WriteLine(deviceId);
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.WriteLine();
+
             var sensorType = topicParts[4];
 
             SensorDataMessage? sensorMessage;
 
             try
             {
-                sensorMessage =
-                    JsonSerializer.Deserialize<SensorDataMessage>(payload);
+                sensorMessage = JsonSerializer.Deserialize<SensorDataMessage>(
+                    payload,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
             }
             catch (JsonException)
             {
@@ -97,12 +98,6 @@ namespace SmartHomeIoT.Api.Services
                 Console.WriteLine("Sensor data payload was empty.");
                 return;
             }
-
-            Console.WriteLine(
-                $"Parsed sensor data: " +
-                $"Value={sensorMessage.Value}, " +
-                $"Unit={sensorMessage.Unit}, " +
-                $"Timestamp={sensorMessage.Timestamp:o}");
 
             using var scope = _scopeFactory.CreateScope();
 
