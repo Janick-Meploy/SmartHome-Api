@@ -4,3 +4,7 @@ obj/
 *.user
 appsettings.Local.json
 *.db
+
+# Local development secrets (connection string for docker-compose.dev.yml)
+.env
+.env.local
