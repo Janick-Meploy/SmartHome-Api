@@ -22,10 +22,11 @@ public class RoomsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<RoomDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<RoomDto>>> GetAll()
     {
+        // Order BEFORE projecting: sorting on a projected DTO property can't be translated to SQL.
         var rooms = await _db.Rooms
             .AsNoTracking()
-            .Select(r => new RoomDto(r.RoomId, r.Name, r.Devices.Count))
             .OrderBy(r => r.Name)
+            .Select(r => new RoomDto(r.RoomId, r.Name, r.Devices.Count))
             .ToListAsync();
 
         return Ok(rooms);
@@ -37,15 +38,22 @@ public class RoomsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<RoomDetailDto>> GetById(int id)
     {
+        // No ThenInclude(d => d.Room): Room -> Devices -> Room is a cycle, which a
+        // no-tracking query rejects. The room name is right here, so fill it in directly.
         var room = await _db.Rooms
             .AsNoTracking()
-            .Include(r => r.Devices).ThenInclude(d => d.Room)
+            .Include(r => r.Devices)
             .FirstOrDefaultAsync(r => r.RoomId == id);
 
         if (room is null)
             return NotFound(new { statusCode = 404, message = $"Room {id} was not found." });
 
-        var dto = new RoomDetailDto(room.RoomId, room.Name, room.Devices.Select(d => d.ToDto()).ToList());
+        var devices = room.Devices
+            .OrderBy(d => d.Name)
+            .Select(d => new DeviceDto(d.DeviceId, d.Name, d.Type, d.RoomId, room.Name, d.Status.ToString(), d.LastSeen))
+            .ToList();
+
+        var dto = new RoomDetailDto(room.RoomId, room.Name, devices);
         return Ok(dto);
     }
 
