@@ -57,9 +57,6 @@ namespace SmartHomeIoT.Api.Services
             Console.WriteLine($"Topic: {topic}");
             Console.WriteLine($"Payload: {payload}");
 
-            // Expected:
-            // smarthome/device/42/sensor/temperature
-
             var topicParts = topic.Split('/');
 
             if (topicParts.Length != 5)
@@ -73,7 +70,13 @@ namespace SmartHomeIoT.Api.Services
                 Console.WriteLine("Invalid device ID in MQTT topic.");
                 return;
             }
-
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine(deviceId);
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
             var sensorType = topicParts[4];
 
             SensorDataMessage? sensorMessage;
