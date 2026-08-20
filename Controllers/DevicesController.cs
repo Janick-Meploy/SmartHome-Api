@@ -5,6 +5,7 @@ using SmartHomeIoT.Api.DTOs.Device;
 using SmartHomeIoT.Api.DTOs.EventLog;
 using SmartHomeIoT.Api.DTOs.SensorData;
 using SmartHomeIoT.Api.Models;
+using SmartHomeIoT.Api.Services;
 
 namespace SmartHomeIoT.Api.Controllers;
 
@@ -18,8 +19,13 @@ namespace SmartHomeIoT.Api.Controllers;
 public class DevicesController : ControllerBase
 {
     private readonly SmartHomeDbContext _db;
+    private readonly WifiDiscoveryService _wifiDiscoveryService;
 
-    public DevicesController(SmartHomeDbContext db) => _db = db;
+    public DevicesController(SmartHomeDbContext db, WifiDiscoveryService wifiDiscoveryService)
+    {
+        _db = db;
+        _wifiDiscoveryService = wifiDiscoveryService;
+    }
 
     /// <summary>List all registered devices, optionally filtered by room or status.</summary>
     [HttpGet]
@@ -247,5 +253,13 @@ public class DevicesController : ControllerBase
             message = $"Command '{dto.Command}' recorded for device {id}. " +
                        "Dispatch over MQTT topic home/{deviceId}/cmd requires the MQTT publisher integration."
         });
+    }
+
+    [HttpGet("discovered")]
+    public async Task<ActionResult<List<DiscoveredDeviceDto>>> GetDiscoveredDevices()
+    {
+        var devices = await _wifiDiscoveryService.ScanAsync();
+
+        return Ok(devices);
     }
 }

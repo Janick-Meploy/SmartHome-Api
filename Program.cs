@@ -58,6 +58,7 @@ builder.Services.AddHealthChecks()
 
 builder.Services.AddScoped<SensorDataService>();
 builder.Services.AddHostedService<MqttService>();
+builder.Services.AddScoped<WifiDiscoveryService>();
 
 builder.Services.AddCors(options =>
 {
