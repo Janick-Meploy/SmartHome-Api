@@ -1,0 +1,93 @@
+# Local development environment for SmartHome-Api - requires NO .NET SDK on the machine.
+#
+#   docker compose -f docker-compose.dev.yml up -d
+#   -> API:     http://localhost:5080/swagger
+#   -> health:  http://localhost:5080/health
+#   -> MariaDB: localhost:3307 (user smarthome_user / devpass)
+#   -> MQTT:    mosquitto sidecar on the api container's own localhost:1883
+#
+# Database:
+#   The connection string comes from appsettings.json. To point the API somewhere
+#   else - for example the throwaway MariaDB below - put the line in a .env file
+#   next to this one; .env is gitignored and wins over appsettings.json:
+#
+#       ConnectionStrings__Default=Server=db;Port=3306;Database=smarthome;User Id=smarthome_user;Password=devpass;TreatTinyAsBoolean=true;
+#
+#   Use host.docker.internal as the server when the database runs on the Mac itself.
+#   The local MariaDB runs schema.sql and dev-seed.sql on first start (empty volume).
+
+name: smarthome-dev
+
+services:
+  db:
+    image: mariadb:10.6
+    container_name: smarthome-db
+    environment:
+      MARIADB_ROOT_PASSWORD: devroot
+      MARIADB_DATABASE: smarthome
+      MARIADB_USER: smarthome_user
+      MARIADB_PASSWORD: devpass
+      TZ: UTC
+    command: ["--default-time-zone=+00:00"]
+    ports:
+      - "3307:3306"
+    volumes:
+      - smarthome-db-data:/var/lib/mysql
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./dev-seed.sql:/docker-entrypoint-initdb.d/02-dev-seed.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    container_name: smarthome-api
+    working_dir: /src
+    # The source is mounted, so edit-and-restart is enough - no image rebuild.
+    command: ["dotnet", "run", "--no-launch-profile", "--urls", "http://0.0.0.0:5080"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      # The API maps onto an EXISTING schema - never let it migrate or create anything.
+      Database__ApplyMigrationsOnStartup: "false"
+      Database__EnsureCreatedIfNoMigrations: "false"
+      # Everything in the database is naive UTC (the API writes DateTime.UtcNow).
+      TZ: UTC
+      # The Angular dev server.
+      Cors__AllowedOrigins__0: http://localhost:4200
+      Cors__AllowedOrigins__1: https://localhost:4200
+    env_file:
+      - path: .env
+        required: false
+    ports:
+      - "5080:5080"
+    volumes:
+      - .:/src
+      - smarthome-nuget:/root/.nuget/packages
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # The API's MqttService connects to a hardcoded "localhost:1883" and takes the
+  # WHOLE API down if nothing answers. Sharing the api container's network
+  # namespace is what makes that literal localhost resolve - a normal compose
+  # service would be reachable as "mosquitto:1883", which the code never asks
+  # for. Mosquitto's default config listens on localhost only and allows
+  # anonymous connections, which is exactly this setup.
+  # Note: because this shares the api container's namespace, you cannot recreate
+  # api on its own - the old namespace stays pinned by this container and Kestrel
+  # then fails to bind with a TaskCanceledException. Recreate both:
+  #     docker compose -f docker-compose.dev.yml up -d --force-recreate
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: smarthome-mosquitto
+    network_mode: "service:api"
+    depends_on:
+      - api
+
+volumes:
+  smarthome-db-data:
+  smarthome-nuget:
+    external: true
+    name: smarthome-nuget
