@@ -260,6 +260,7 @@ public class DevicesController : ControllerBase
     public async Task<ActionResult<List<DiscoveredDeviceDto>>> GetDiscoveredDevices()
     {
         var devices = await _wifiDiscoveryService.ScanAsync(); // test
+        devices = devices.Where(ssid => ssid.Ssid.StartsWith("SmartHome")).ToList();
         return Ok(devices);
     }
 }
