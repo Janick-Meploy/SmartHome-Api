@@ -259,7 +259,7 @@ public class DevicesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<DiscoveredDeviceDto>>> GetDiscoveredDevices()
     {
-        var devices = await _wifiDiscoveryService.ScanAsync();
+        var devices = await _wifiDiscoveryService.ScanAsync(); // test
         return Ok(devices);
     }
 }
