@@ -43,13 +43,22 @@ public class RoomsController : ControllerBase
     {
         var room = await _db.Rooms
             .AsNoTracking()
-            .Include(r => r.Devices).ThenInclude(d => d.Room)
+            .Include(r => r.Devices)
             .FirstOrDefaultAsync(r => r.RoomId == id);
 
         if (room is null)
             return NotFound(new { statusCode = 404, message = $"Room {id} was not found." });
 
-        var dto = new RoomDetailDto(room.RoomId, room.Name, room.Devices.Select(d => d.ToDto()).ToList());
+        // Each device's RoomName comes from the room we already have, rather than
+        // from a ThenInclude(d => d.Room). That would be a cycle
+        // (Room -> Devices -> Room), which a no-tracking query rejects outright -
+        // and it threw here, BEFORE the null check above, so an unknown id
+        // answered 500 instead of 404.
+        var devices = room.Devices
+            .Select(d => d.ToDto() with { RoomName = room.Name })
+            .ToList();
+
+        var dto = new RoomDetailDto(room.RoomId, room.Name, devices);
         return Ok(dto);
     }
 
