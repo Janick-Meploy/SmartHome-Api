@@ -8,7 +8,7 @@ using SmartHomeIoT.Api.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // ---------------------------------------------------------------------
-// Servicesaaa
+// Servicesaaaaa
 // ---------------------------------------------------------------------
 
 builder.Services.AddControllers()
