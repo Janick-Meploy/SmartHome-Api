@@ -254,12 +254,12 @@ public class DevicesController : ControllerBase
                        "Dispatch over MQTT topic home/{deviceId}/cmd requires the MQTT publisher integration."
         });
     }
-
     [HttpGet("discovered")]
+    [ProducesResponseType(typeof(IEnumerable<DiscoveredDeviceDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<DiscoveredDeviceDto>>> GetDiscoveredDevices()
     {
         var devices = await _wifiDiscoveryService.ScanAsync();
-
         return Ok(devices);
     }
 }

@@ -17,6 +17,9 @@ Content-Type: application/json
 ### List devices
 GET {{host}}/api/v1/devices
 
+### Discover nearby Smart Home devices
+GET {{host}}/api/v1/devices/discovered
+
 ### Register a device (assumes RoomId 1 already exists)
 POST {{host}}/api/v1/devices
 Content-Type: application/json
