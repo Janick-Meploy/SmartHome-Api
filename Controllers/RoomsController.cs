@@ -24,8 +24,12 @@ public class RoomsController : ControllerBase
     {
         var rooms = await _db.Rooms
             .AsNoTracking()
-            .Select(r => new RoomDto(r.RoomId, r.Name, r.Devices.Count))
             .OrderBy(r => r.Name)
+            .Select(r => new RoomDto(
+                r.RoomId,
+                r.Name,
+                r.Devices.Count
+            ))
             .ToListAsync();
 
         return Ok(rooms);
